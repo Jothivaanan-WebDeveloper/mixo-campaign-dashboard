@@ -1,0 +1,47 @@
+export type CampaignStatus = "active" | "paused" | "completed";
+
+export interface Campaign {
+  id: string;
+  name: string;
+  brand_id: string;
+  status: CampaignStatus;
+  budget: number;
+  daily_budget: number;
+  platforms: string[];
+  created_at: string;
+}
+
+export interface CampaignListResponse {
+  campaigns: Campaign[];
+  total: number;
+}
+
+export interface CampaignInsights {
+  campaign_id: string;
+  impressions: number;
+  clicks: number;
+  conversions: number;
+  spend: number;
+  ctr: number;
+  cpc: number;
+  conversion_rate: number;
+}
+
+// Aggregated dashboard insights
+export interface AggregateCampaignInsights {
+  total_campaigns: number;
+  active_campaigns: number;
+  paused_campaigns: number;
+  completed_campaigns: number;
+  total_impressions: number;
+  total_clicks: number;
+  total_conversions: number;
+  total_spend: number;
+  avg_ctr: number;
+  avg_cpc: number;
+  avg_conversion_rate: number;
+}
+
+export interface CampaignInsightsResponse {
+  insights: CampaignInsights;
+}
