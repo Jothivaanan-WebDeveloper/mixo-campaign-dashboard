@@ -43,5 +43,17 @@ export interface AggregateCampaignInsights {
 }
 
 export interface CampaignInsightsResponse {
-  insights: CampaignInsights;
+  insights: AggregateCampaignInsights;
+}
+
+export interface CampaignInsightsStream {
+  campaign_id: string;
+  timestamp: string;
+  impressions: number;
+  clicks: number;
+  conversions: number;
+  spend: number;
+  ctr: number;
+  cpc: number;
+  conversion_rate: number;
 }

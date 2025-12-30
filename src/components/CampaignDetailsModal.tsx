@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import type { Campaign } from "../types/campaign";
 import { getCampaignById, getCampaignInsightsById } from "../api/campaigns";
+import { useCampaignInsightsStream } from "../hooks/useCampaignInsightsStream";
+import { LiveKPITiles } from "./LiveKPITiles";
 
 interface CampaignDetailsModalProps {
   campaignId: string | null;
@@ -28,9 +30,10 @@ const CampaignDetailsModal: React.FC<CampaignDetailsModalProps> = ({
   const [isError, setIsError] = useState<string | null>(null);
   const [insights, setInsights] = useState<CampaignInsights | null>(null);
 
+  const { data } = useCampaignInsightsStream(campaignId);
+
   useEffect(() => {
     if (!isOpen || !campaignId) return;
-  console.log("🔥 effect fired", { campaignId, isOpen });
     setIsLoading(true);
     setIsError(null);
     setCampaign(null);
@@ -49,26 +52,6 @@ const CampaignDetailsModal: React.FC<CampaignDetailsModalProps> = ({
       })
       .catch(() => {
         setIsError("Failed to load campaign details");
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [campaignId, isOpen]);
-
-
-  useEffect(() => {
-    if (!isOpen || !campaignId) return;
-
-    setIsLoading(true);
-    setIsError(null);
-    setCampaign(null);
-
-    getCampaignById(campaignId)
-      .then((res) => {
-        setCampaign(res.campaign); // ✅ FIXED
-      })
-      .catch(() => {
-        setIsError("Failed to load campaign");
       })
       .finally(() => {
         setIsLoading(false);
@@ -101,10 +84,11 @@ const CampaignDetailsModal: React.FC<CampaignDetailsModalProps> = ({
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-xl w-11/12 max-w-md p-6 z-10">
+      {/* Modal */}
+      <div className="relative bg-white rounded-2xl shadow-xl w-11/12 max-w-4xl p-6 z-10">
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-600"
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
         >
           ✕
         </button>
@@ -120,56 +104,63 @@ const CampaignDetailsModal: React.FC<CampaignDetailsModalProps> = ({
         )}
 
         {campaign && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">{campaign.name}</h2>
-
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="font-medium">Campaign ID</p>
-                <p>{campaign.id}</p>
-              </div>
-              <div>
-                <p className="font-medium">Brand ID</p>
-                <p>{campaign.brand_id}</p>
-              </div>
-              <div>
-                <p className="font-medium">Status</p>
-                <p className="capitalize">{campaign.status}</p>
-              </div>
-              <div>
-                <p className="font-medium">Created</p>
-                <p>{new Date(campaign.created_at).toLocaleString()}</p>
-              </div>
-              <div>
-                <p className="font-medium">Budget</p>
-                <p>${campaign.budget.toLocaleString()}</p>
-              </div>
-              <div>
-                <p className="font-medium">Daily Budget</p>
-                <p>${campaign.daily_budget.toLocaleString()}</p>
-              </div>
-            </div>
-
+          <div className="space-y-8">
+            {/* Header */}
             <div>
-              <p className="font-medium mb-1">Platforms</p>
-              <div className="flex gap-2">
-                {campaign.platforms.map((p) => (
-                  <span
-                    key={p}
-                    className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs"
-                  >
-                    {p.toUpperCase()}
-                  </span>
-                ))}
+              <h2 className="text-2xl font-semibold">{campaign.name}</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Campaign overview & live performance
+              </p>
+            </div>
+
+            {/* General Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <InsightItem label="Campaign ID" value={campaign.id} />
+                <InsightItem label="Brand ID" value={campaign.brand_id} />
+                <InsightItem label="Status" value={campaign.status} />
+                <InsightItem
+                  label="Created"
+                  value={new Date(campaign.created_at).toLocaleString()}
+                />
+                <InsightItem
+                  label="Budget"
+                  value={`$${campaign.budget.toLocaleString()}`}
+                />
+                <InsightItem
+                  label="Daily Budget"
+                  value={`$${campaign.daily_budget.toLocaleString()}`}
+                />
+              </div>
+
+              {/* Platforms */}
+              <div>
+                <p className="font-medium mb-2">Platforms</p>
+                <div className="flex flex-wrap gap-2">
+                  {campaign.platforms.map((p) => (
+                    <span
+                      key={p}
+                      className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium"
+                    >
+                      {p.toUpperCase()}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Insights */}
-            {insights && (
-              <div className="mt-6 border-t pt-4">
-                <h3 className="font-semibold mb-3">Performance</h3>
+            {/* Live KPI Tiles */}
+            <div>
+              <h3 className="font-semibold mb-4">Live Performance</h3>
+              <LiveKPITiles insights={data} />
+            </div>
 
-                <div className="grid grid-cols-2 gap-4 text-sm">
+            {/* Static Insights (optional fallback) */}
+            {insights && (
+              <div className="border-t border-gray-100 pt-6">
+                <h3 className="font-semibold mb-4">Summary Metrics</h3>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <InsightItem label="Impressions" value={insights.impressions} />
                   <InsightItem label="Clicks" value={insights.clicks} />
                   <InsightItem label="Conversions" value={insights.conversions} />
@@ -183,10 +174,10 @@ const CampaignDetailsModal: React.FC<CampaignDetailsModalProps> = ({
                 </div>
               </div>
             )}
-
           </div>
         )}
       </div>
+
     </div>
   );
 };

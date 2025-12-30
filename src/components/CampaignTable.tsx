@@ -9,6 +9,34 @@ export default function CampaignTable() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [search, setSearch] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+
+    // Quick Filter
+    const PAGE_SIZE = 5;
+
+    const filteredCampaigns = campaigns.filter((campaign) => {
+        const query = search.toLowerCase();
+
+        return (
+            campaign.name.toLowerCase().includes(query) ||
+            campaign.status.toLowerCase().includes(query) ||
+            campaign.platforms.some((p) => p.toLowerCase().includes(query))
+        );
+    });
+
+    //Pagination
+    const totalPages = Math.ceil(filteredCampaigns.length / PAGE_SIZE);
+
+    const paginatedCampaigns = filteredCampaigns.slice(
+        (currentPage - 1) * PAGE_SIZE,
+        currentPage * PAGE_SIZE
+    );
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [search]);
+
 
     useEffect(() => {
         getCampaigns()
@@ -18,7 +46,6 @@ export default function CampaignTable() {
     }, []);
 
     const handleCampaignClick = (id: string) => {
-        console.log("id", id)
         setSelectedCampaignId(id)
         setIsModalOpen(true);
     }
@@ -29,6 +56,25 @@ export default function CampaignTable() {
     return (
         <>
             <div className="bg-white rounded-md shadow overflow-x-auto">
+
+                <div className="flex justify-between items-center">
+                    <h3 className="font-medium mx-4">Campaign List</h3>
+
+                    <input
+                        type="text"
+                        placeholder="Search Campaigns, Status, Platforms..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="
+    m-2 w-80 rounded-md px-3 py-2 text-sm
+    border-2 border-gray-100
+    focus:outline-none
+    focus:border-gray-300
+    focus:ring-0
+  "
+                    />
+                </div>
+
                 <table className="min-w-full text-sm">
                     <thead className="bg-gray-50">
                         <tr>
@@ -41,8 +87,8 @@ export default function CampaignTable() {
                         </tr>
                     </thead>
                     <tbody>
-                        {campaigns.map((campaign) => (
-                            <tr key={campaign.id} className="border-t">
+                        {paginatedCampaigns.map((campaign) => (
+                            <tr key={campaign.id} className="border-t hover:bg-gray-50">
                                 <Td>
                                     <span
                                         className="text-blue-500 hover:cursor-pointer"
@@ -61,7 +107,33 @@ export default function CampaignTable() {
                             </tr>
                         ))}
                     </tbody>
+
+                    {/* Pagination */}
+
                 </table>
+                <div className="my-4 flex items-center justify-center gap-4">
+                    <p className="text-sm text-gray-600">
+                        Page {currentPage} of {totalPages}
+                    </p>
+
+                    <div className="flex gap-2">
+                        <button
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage((p) => p - 1)}
+                            className="rounded border px-3 py-1 text-sm disabled:opacity-50 hover:bg-gray-100 cursor-pointer disabled:cursor-not-allowed disabled:hover:bg-none"
+                        >
+                            Prev
+                        </button>
+
+                        <button
+                            disabled={currentPage === totalPages}
+                            onClick={() => setCurrentPage((p) => p + 1)}
+                            className="rounded border px-3 py-1 text-sm disabled:opacity-50 hover:bg-gray-100 cursor-pointer disabled:cursor-not-allowed disabled:hover:bg-none"
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
             </div>
             <CampaignDetailsModal
                 campaignId={selectedCampaignId}
@@ -77,14 +149,14 @@ export default function CampaignTable() {
 
 function Th({ children }: { children: React.ReactNode }) {
     return (
-        <th className="px-4 py-3 text-left font-medium text-gray-600">
+        <th className="px-4 py-3 text-left font-medium text-gray-600 border-b border-gray-300">
             {children}
         </th>
     );
 }
 
 function Td({ children }: { children: React.ReactNode }) {
-    return <td className="px-4 py-3">{children}</td>;
+    return <td className="px-4 py-3 border-b border-gray-200">{children}</td>;
 }
 
 function StatusBadge({ status }: { status: string }) {

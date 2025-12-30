@@ -6,10 +6,10 @@ import {
     Tooltip,
     ResponsiveContainer,
 } from "recharts";
-import type { CampaignInsights } from "../types/campaign";
+import type { AggregateCampaignInsights } from "../types/campaign";
 
 interface Props {
-    insights: CampaignInsights;
+    insights: AggregateCampaignInsights;
 }
 
 export default function PerformanceChart({ insights }: Props) {

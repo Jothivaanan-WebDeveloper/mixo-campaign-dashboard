@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
 import { getCampaignInsights } from "../api/campaigns";
-import type { CampaignInsights } from "../types/campaign";
+import type { AggregateCampaignInsights } from "../types/campaign";
 import CampaignTable from "../components/CampaignTable";
 import PerformanceChart from "../components/PerformanceChart";
 
 export default function Dashboard() {
-    const [insights, setInsights] = useState<CampaignInsights | null>(null);
+    const [insights, setInsights] = useState<AggregateCampaignInsights | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         getCampaignInsights()
             .then((res) => setInsights(res.insights))
-            .catch(() => setError("Failed to load insights"))
+            .catch(() => setError("Failed to load insights. Please try again later."))
             .finally(() => setLoading(false));
     }, []);
 
